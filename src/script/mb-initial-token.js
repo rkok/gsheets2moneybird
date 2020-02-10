@@ -4,7 +4,7 @@ const mb = require('../api/moneybird')(mbcfg);
 if (process.argv.length < 3) {
   const tokenUrl = `https://moneybird.com/oauth/authorize?client_id=${mbcfg.client_id}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code`;
   console.error(`First, get an initial auth code from ${tokenUrl}`);
-  console.error(`Then, use it as the argument for this script (node ./mb1-get-authreqtoken.js <code>)`);
+  console.error(`Then, use it as the argument for this script (node ./mb-initial-token.js <code>)`);
   process.exit(1);
 }
 
