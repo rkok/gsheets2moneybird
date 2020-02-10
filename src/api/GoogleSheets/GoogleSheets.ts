@@ -7,10 +7,10 @@ let sheetsApi;
  * @param {string} range
  * @returns {Promise<Array>} rows
  */
-const getSheet = (spreadsheetId, range = 'A1:M10000') => {
+const getSheet = (spreadsheetId: string, range = 'A1:M10000') => {
   return new Promise((resolve, reject) => {
     sheetsApi.spreadsheets.values.get({ spreadsheetId, range },
-      (err, res) => {
+      (err: any, res: any) => {
         if (err) {
           return reject(new Error(`Google Docs API error: ${err}`));
         }

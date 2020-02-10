@@ -1,6 +1,8 @@
+import { InvoiceRow } from "./src/api/GoogleSheets/InvoiceRow.model";
+
 const config = require('./config/config.json');
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 const parser = require('./src/sheetParser');
 
 if (!fs.existsSync(path.resolve(__dirname, './config/gsheets-token.json'))) {
@@ -22,18 +24,18 @@ if (!fs.existsSync(path.resolve(__dirname, './config/moneybird.json'))) {
   process.exit(1);
 }
 
-const mbcfg = require('./config/moneybird');
+const moneyBirdConfig = require('./config/moneybird');
 
 if (!fs.existsSync(path.resolve(__dirname, './config/moneybird-token.json'))) {
   console.error('config/moneybird-token.json not found');
-  console.error('  Run: node src/scripts/mb-initial-token.js and follow the steps');
+  console.error('  Run: node src/scripts/moneyBird-initial-token.js and follow the steps');
   process.exit(1);
 }
 
-const mb = require('./src/api/moneybird')(mbcfg);
+const moneyBird = require('./src/api/moneybird')(moneyBirdConfig);
 
 if (process.argv.length < 3) {
-  console.log('Usage: node ./ <clientname>');
+  console.log(`Usage: node ./ <clientname>`);
   process.exit(1);
 }
 const clientId = process.argv[2];
@@ -47,11 +49,12 @@ console.log(`Client: ${clientId}`);
 
 (async () => {
   const rows = await sheets.getSheet(client.sheetId);
-  const invoiceRows = parser.parseInvoiceRows(rows, config.defaultFee);
+  const invoiceRows: InvoiceRow[] = parser.parseInvoiceRows(rows, config.defaultFee);
 
-  const totalInvoiceFee = invoiceRows.reduce((total, irow) => {
-    return total + irow.count * irow.fee;
+  const totalInvoiceFee = invoiceRows.reduce((total: number, invoiceRow: InvoiceRow) => {
+    return total + invoiceRow.count * invoiceRow.fee;
   }, 0);
+
   const totalInvoiceFeeFmt = new Intl.NumberFormat('nl-NL', {
     style: 'currency',
     currency: 'EUR'
@@ -64,8 +67,8 @@ console.log(`Client: ${clientId}`);
   }
 
   console.log('Creating invoice ...');
-  await mb.init();
+  await moneyBird.init();
   const includeVat = client.hasOwnProperty('includeVat') ? client.includeVat : true;
-  const invoiceId = await mb.createSalesInvoice(invoiceRows, includeVat);
-  console.log(`Created invoice: https://moneybird.com/${mbcfg.administration_id}/sales_invoices/${invoiceId}`);
+  const invoiceId = await moneyBird.createSalesInvoice(invoiceRows, includeVat);
+  console.log(`Created invoice: https://moneybird.com/${moneyBirdConfig.administration_id}/sales_invoices/${invoiceId}`);
 })();
