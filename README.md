@@ -30,7 +30,8 @@ There should be one Google Sheet per client, with these columns:
 1. Date
 2. Amount of hours worked
 3. Hourly rate (optional, uses config.defaultRate if not set)
-4. Client name (optional)
+4. Client name (optional) - 
+   for sub-clients, gets prepended to the invoice row if set
 5. Description of the work
 6. Invoice number - if this is set, the row will not be included
    in new invoices
