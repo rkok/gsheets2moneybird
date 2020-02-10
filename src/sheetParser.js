@@ -5,7 +5,7 @@ const REQUIRED_COLS = ['count', 'date', 'description', 'invoiceNo'];
 /**
  * @param {array[]} rows
  * @param {number} defaultFee
- * @returns {*|Uint8Array|BigInt64Array|*[]|Float64Array|Int8Array|Float32Array|Int32Array|Uint32Array|Uint8ClampedArray|BigUint64Array|Int16Array|Uint16Array}
+ * @returns {InvoiceRow[]}
  */
 const parseInvoiceRows = (rows, defaultFee) => {
   if (!rows.length) {
