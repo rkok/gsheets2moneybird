@@ -20,6 +20,10 @@ Run: `node ./ <clientname>`
 This will read invoice rows from the client's Google Sheet
 and create a new draft invoice in Moneybird for the Dummy Client. 
 
+Once you've submitted the invoice, put the invoice number
+back into the relevant Google Sheet rows, so they won't be included
+in new invoices. 
+
 ## Assumptions
 
 This was written for my own particular use case, so
