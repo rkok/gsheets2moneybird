@@ -3,19 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const parser = require('./src/sheetParser');
 
-if (process.argv.length < 3) {
-  console.log('Usage: node ./ <clientname>');
-  process.exit(1);
-}
-const clientId = process.argv[2];
-const client = config.clients[clientId];
-if (!client) {
-  console.error(`Invalid client name given`);
-  process.exit(1);
-}
-
-console.log(`Client: ${clientId}`);
-
 if (!fs.existsSync(path.resolve(__dirname, './config/gsheets-token.json'))) {
   console.error(`File 'config/gsheets-token.json' not found.`);
   console.error(`  1. Obtain it by creating a service account on https://console.developers.google.com/apis/credentials`);
@@ -44,6 +31,19 @@ if (!fs.existsSync(path.resolve(__dirname, './config/moneybird-token.json'))) {
 }
 
 const mb = require('./src/api/moneybird')(mbcfg);
+
+if (process.argv.length < 3) {
+  console.log('Usage: node ./ <clientname>');
+  process.exit(1);
+}
+const clientId = process.argv[2];
+const client = config.clients[clientId];
+if (!client) {
+  console.error(`Invalid client name given`);
+  process.exit(1);
+}
+
+console.log(`Client: ${clientId}`);
 
 (async () => {
   const rows = await sheets.getSheet(client.sheetId);
