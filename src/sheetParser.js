@@ -1,13 +1,23 @@
 const InvoiceRow = require('./model/InvoiceRow');
+const { isWithinInterval } = require('date-fns');
 
 const REQUIRED_COLS = ['count', 'date', 'description', 'invoiceNo'];
 
+const parseDate = date => {
+  const split = date.split('-');
+  if (split[0].length === 4) {
+    return new Date(`${date}T00:00:00.000Z`); // Assume YYYY-MM-DD
+  }
+  const [d, m, y] = split; // Assume DD-MM-YYYY
+  return new Date(`${y}-${m}-${d}T00:00:00.000Z`);
+};
+
 /**
  * @param {array[]} rows
- * @param {number} defaultFee
+ * @param {{}} opts
  * @returns {InvoiceRow[]}
  */
-const parseInvoiceRows = (rows, defaultFee) => {
+const parseInvoiceRows = (rows, opts) => {
   if (!rows.length) {
     throw new Error(`No rows in the given sheet`);
   }
@@ -38,15 +48,29 @@ const parseInvoiceRows = (rows, defaultFee) => {
   // Filter out rows we don't need
   // Column header row
   rows.shift();
+
   // No 'count' filled in
-  rows = rows.filter(row => row[cols.count].length > 0);
-  // Already have an invoice number
-  rows = rows.filter(row => !row[cols.invoiceNo] || !row[cols.invoiceNo].length);
+  rows = rows.filter(row => row[cols.count] && row[cols.count].length > 0);
+
+  if (opts.dateRange) {
+    // Not in date range
+    const [start, end] = opts.dateRange;
+    rows = rows.filter(row => {
+      if (!row[cols.date]) {
+        console.error('Skipping row due to missing date');
+	      return false;
+      }
+      return isWithinInterval(parseDate(row[cols.date]), { start, end });
+    });
+  } else {
+    // Already have an invoice number
+    rows = rows.filter(row => !row[cols.invoiceNo] || !row[cols.invoiceNo].length);
+  }
 
   return rows.map((row, nr) => {
     const irow = new InvoiceRow();
     irow.count = row[cols.count];
-    irow.fee = cols.fee !== null ? row[cols.fee] : defaultFee;
+    irow.fee = cols.fee !== null ? row[cols.fee] : opts.defaultFee;
 
     let desc = '';
     if (cols.client && row[cols.client]) {
@@ -58,7 +82,7 @@ const parseInvoiceRows = (rows, defaultFee) => {
     try {
       irow.date = row[cols.date];
     } catch (e) {
-      throw new Error(`Error mapping new invoice row ${nr}: ${e.message}`);
+      throw new Error(`Error mapping new invoice row ${nr}: ${e.message}  - row data: ${JSON.stringify(row)}`);
     }
 
     return irow;

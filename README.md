@@ -15,14 +15,36 @@ Google Sheets to Moneybird invoice exporter
 
 ## How to use
 
-Run: `node ./ <clientname>`
+For a list of options, just run: `node .`
 
-This will read invoice rows from the client's Google Sheet
-and create a new draft invoice in Moneybird for the Dummy Client. 
+The application will read invoice rows from clients' Google Sheets
+and create a new draft invoices in Moneybird, linked to the Dummy Client. 
 
-Once you've submitted the invoice, put the invoice number
+Once you've sent an invoice to the client, put the invoice number
 back into the relevant Google Sheet rows, so they won't be included
 in new invoices. 
+
+Below are some examples.
+
+### Show invoiceable amount of money for all clients
+
+`node . --status`
+
+### Create invoices in MoneyBird
+
+`node . --create-invoice`
+
+### Create invoice for only 'fooClient' and 'barClient'
+
+`node . --create-invoice --clients fooClient,barClient`
+
+### Show revenue for January 2020
+
+`node . --status --month 2020-01`
+
+### Download unpaid invoice PDFs
+
+`node . --dl-pdf`
 
 ## Assumptions
 
@@ -41,3 +63,8 @@ There should be one Google Sheet per client, with these columns:
    in new invoices
 
 Column names are hardcoded in `src/sheetParser.js`.
+
+Currency is hardcoded to Euro.
+
+Dutch (DD-MM-YYYY) date formats are assumed for '00-00-0000'-style dates, and
+numbers are formatted Dutch-style during `--status`.

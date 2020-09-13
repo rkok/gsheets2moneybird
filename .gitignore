@@ -1,4 +1,5 @@
-node_modules
-vendor
-config/*.json
+/node_modules
+/config/*.json
+/data/invoices/*
+!/data/invoices/.gitkeep
 .idea

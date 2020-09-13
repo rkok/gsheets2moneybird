@@ -99,6 +99,17 @@ module.exports = (mbcfg) => {
     getAuthRequestToken: authCode => getAuthRequestToken(authCode, mbcfg),
     writeTokenFile,
     getAllSalesInvoices,
-    createSalesInvoice: (rows, includeVat) => createSalesInvoice(rows, includeVat, mbcfg)
+    createSalesInvoice: (rows, includeVat) => createSalesInvoice(rows, includeVat, mbcfg),
+    /**
+     * @param id
+     * @returns {Promise<IncomingMessage>}
+     */
+    getSalesInvoicePdf: async id => {
+      const res = await ax.get(`${apiBaseUrl}/sales_invoices/${id}/download_pdf`, { responseType: 'stream' });
+      if (res.status !== 200) {
+        throw new Error(`Error downloading sales invoice: ${res.status} ${JSON.stringify(res.data)}`);
+      }
+      return res.data;
+    }
   };
 };

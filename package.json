@@ -1,7 +1,7 @@
 {
   "name": "gsheets2moneybird",
-  "version": "1.0.0",
-  "description": "...",
+  "version": "2.0.0",
+  "description": "Google Sheets to Moneybird invoice exporter",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,8 +10,11 @@
   "license": "GNU GPLv3",
   "dependencies": {
     "axios": "^0.19.2",
+    "command-line-args": "^5.1.1",
+    "command-line-usage": "^6.1.0",
+    "date-fns": "^2.15.0",
     "googleapis": "^39.2.0",
     "moment": "^2.24.0"
   },
-  "repository": "https://foo.bar"
+  "repository": "https://github.com/rkok/gsheets2moneybird"
 }
