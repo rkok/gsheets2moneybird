@@ -9,7 +9,7 @@
   "author": "rkok <info@rkok.nl>",
   "license": "GNU GPLv3",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "command-line-args": "^5.1.1",
     "command-line-usage": "^6.1.0",
     "date-fns": "^2.15.0",
