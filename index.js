@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const cargs = require('command-line-args');
 const cusage = require('command-line-usage')
+const pMap = require('p-map');
 const parser = require('./src/sheetParser');
 const { addMonths } = require('date-fns');
 
@@ -26,7 +27,7 @@ if (!fs.existsSync(path.resolve(__dirname, './config/gsheets-token.json'))) {
 }
 
 const token = require('./config/gsheets-token.json');
-const sheets = require('./src/api/gsheets')(token);
+const gsheets = require('./src/api/gsheets')(token);
 const mbcfg = require('./config/moneybird');
 const mb = require('./src/api/moneybird')(mbcfg);
 
@@ -153,11 +154,14 @@ if (args.month) {
   const clientIds = Object.keys(clients);
   const clidPad = Math.max(...clientIds.map(c => c.length)) + 2;
 
-  while (clientIds.length > 0) {
-    const clientId = clientIds.shift();
+  const sheets = await pMap(clientIds, async id => ({
+    clientId: id,
+    rows: await gsheets.getSheet(clients[id].sheetId)
+  }), { concurrency: 2 })
 
-    const client = clients[clientId];
-    const rows = await sheets.getSheet(client.sheetId);
+  for (let i = 0; i < sheets.length; i++) {
+    const { clientId, rows } = sheets[i];
+
     const invoiceRows = parser.parseInvoiceRows(rows, { defaultFee: config.defaultFee, dateRange });
 
     const totalInvoiceFee = invoiceRows.reduce((total, irow) => {
@@ -168,7 +172,7 @@ if (args.month) {
       currency: 'EUR',
       useGrouping: false
     }).format(totalInvoiceFee).replace('€', ' ').padStart(11);
-    console.log(`${clientId.padEnd(clidPad, ' ')} - Total outstanding: €${totalInvoiceFeeFmt}`);
+    console.log(`${clientId.padEnd(clidPad, ' ')} - Total: €${totalInvoiceFeeFmt}`);
 
     totalMultiInvoiceFee += totalInvoiceFee;
 
@@ -191,5 +195,5 @@ if (args.month) {
     currency: 'EUR',
     useGrouping: false
   }).format(totalMultiInvoiceFee).replace('€', ' ').padStart(11);
-  console.log(`${''.padEnd(clidPad, '#')}##################### €${totalMultiInvoiceFeeFmt}`);
+  console.log(`${''.padEnd(clidPad, '#')}######### €${totalMultiInvoiceFeeFmt}`);
 })();
