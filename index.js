@@ -161,6 +161,7 @@ if (args.month) {
 
   for (let i = 0; i < sheets.length; i++) {
     const { clientId, rows } = sheets[i];
+    const client = clients[clientId];
 
     const invoiceRows = parser.parseInvoiceRows(rows, { defaultFee: config.defaultFee, dateRange });
 
