@@ -71,7 +71,7 @@ const parseInvoiceRows = (rows, opts) => {
     const irow = new InvoiceRow();
     irow.count = row[cols.count];
     irow.fee = cols.fee !== null && row[cols.fee] !== undefined
-      ? Number(row[cols.fee].replace('€', ''))
+      ? Number(row[cols.fee].replace(/€\s?/, '').replace(',', '.'))
       : opts.defaultFee;
 
     let desc = '';
