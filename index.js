@@ -22,7 +22,7 @@ if (!fs.existsSync(path.resolve(__dirname, './config/gsheets-token.json'))) {
   process.exit(1);
 } else if (!fs.existsSync(path.resolve(__dirname, './config/moneybird-token.json'))) {
   console.error('config/moneybird-token.json not found');
-  console.error('  Run: node src/scripts/mb-initial-token.js and follow the steps');
+  console.error('  Run: node src/script/mb-initial-token.js and follow the steps');
   process.exit(1);
 }
 
