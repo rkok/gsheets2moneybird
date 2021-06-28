@@ -1,5 +1,6 @@
 {
   "defaultFee": 12345,
+  "includeVat": true,
   "clients": {
     "myclient": {
       "sheetId": "some-google-docs-sheet-ID"

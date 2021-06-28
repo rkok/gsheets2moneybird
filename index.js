@@ -184,9 +184,15 @@ if (args.month) {
       continue;
     }
 
+    let includeVat = true; // Default: include VAT
+    if (client.hasOwnProperty('includeVat')) {
+      includeVat = client.includeVat; // VAT override per client
+    } else if (config.hasOwnProperty('includeVat')) {
+      includeVat = config.includeVat; // Global VAT setting
+    }
+
     console.log('Creating invoice ...');
     await mb.init();
-    const includeVat = client.hasOwnProperty('includeVat') ? client.includeVat : true;
     const invoiceId = await mb.createSalesInvoice(invoiceRows, includeVat);
     console.log(`Created invoice: https://moneybird.com/${mbcfg.administration_id}/sales_invoices/${invoiceId}`);
   }
