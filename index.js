@@ -163,7 +163,8 @@ if (args.month) {
     const { clientId, rows } = sheets[i];
     const client = clients[clientId];
 
-    const invoiceRows = parser.parseInvoiceRows(rows, { defaultFee: config.defaultFee, dateRange });
+    const parseOpts = { defaultFee: client?.defaultFee ?? config.defaultFee, dateRange };
+    const invoiceRows = parser.parseInvoiceRows(rows, parseOpts);
 
     const totalInvoiceFee = invoiceRows.reduce((total, irow) => {
       return total + irow.count * irow.fee;

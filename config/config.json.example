@@ -1,13 +1,14 @@
 {
-  "defaultFee": 12345,
+  "defaultFee": 10,
   "includeVat": true,
   "clients": {
     "myclient": {
       "sheetId": "some-google-docs-sheet-ID"
     },
     "someotherclient": {
+      "defaultFee": 15,
       "includeVat": false,
-      "sheetId": "some-google-docs-sheet-ID"
+      "sheetId": "some-google-docs-sheet-ID",
     }
   }
 }
