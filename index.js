@@ -167,6 +167,10 @@ if (args.month) {
     const invoiceRows = parser.parseInvoiceRows(rows, parseOpts);
 
     const totalInvoiceFee = invoiceRows.reduce((total, irow) => {
+      if (isNaN(Number(irow.fee))) {
+        console.error(`[!] Skipping row with invalid count or fee: "${irow.description}"`)
+        return total;
+      }
       return total + irow.count * irow.fee;
     }, 0);
     const totalInvoiceFeeFmt = new Intl.NumberFormat('nl-NL', {
