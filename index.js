@@ -96,7 +96,7 @@ if (args['dl-pdf']) {
   }
   return (async () => {
     await mb.init();
-    const invoices = (await mb.getAllSalesInvoices()).filter(inv => inv.state !== 'paid');
+    const invoices = (await mb.getAllSalesInvoices());
 
     for (let i = 0; i < invoices.length; i++) {
       const invoice = invoices[i];
