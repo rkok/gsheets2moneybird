@@ -5,7 +5,7 @@ Google Sheets to Moneybird invoice exporter
 
 ## Setup
 
-1. Copy `config/config.json.example` to `config/config.json` and configure as needed
+1. Copy `config/local.js.example` to `config/local.js` and configure as needed
 2. Run the application: `node ./` and follow the steps shown.  
    Repeat this step until all dependencies are met.
    Dependencies are:
@@ -62,7 +62,7 @@ There should be one Google Sheet per client, with these columns:
 6. Invoice number - if this is set, the row will not be included
    in new invoices
 
-Column names are hardcoded in `src/sheetParser.js`.
+Column names can be configured in [config/local.js](config/local.js)
 
 Currency is hardcoded to Euro.
 

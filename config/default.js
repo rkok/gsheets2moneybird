@@ -1,10 +1,11 @@
 module.exports = {
+  clients: {},
   columnNames: {
-    numberOfHours: 'Uren',
-    hourlyRate: 'Uurtarief',
-    date: 'Datum',
-    customer: 'Klant',
-    invoiceNumber: 'Factuurnr.',
-    description: 'Omschrijving'
+    date: 'Date',
+    numberOfHours: 'Hours',
+    description: 'Description',
+    invoiceNumber: 'Invoice no.',
+    hourlyRate: 'Rate',
+    customer: 'Customer',
   }
 };

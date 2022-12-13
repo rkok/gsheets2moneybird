@@ -1,4 +1,4 @@
-const config = require('./config/config.json');
+const config = require('config');
 const fs = require('fs');
 const path = require('path');
 const cargs = require('command-line-args');
