@@ -14,7 +14,7 @@
     "command-line-usage": "^6.1.0",
     "date-fns": "^2.15.0",
     "googleapis": "^66.0.0",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "p-map": "^4.0.0"
   },
   "repository": "https://github.com/rkok/gsheets2moneybird"
