@@ -5,6 +5,7 @@ const cargs = require('command-line-args');
 const cusage = require('command-line-usage')
 const pMap = require('p-map');
 const parser = require('./src/sheetParser');
+const parseCsv = require('./src/util/parsecsv');
 const { addMonths } = require('date-fns');
 
 // Dependency checks
@@ -39,6 +40,7 @@ const args = cargs([
   { name: 'help', type: Boolean },
   { name: 'month', type: String },
   { name: 'status', type: Boolean },
+  { name: 'test', type: Boolean },
   { name: 'year', type: Number }
 ]);
 
@@ -79,6 +81,11 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
           name: 'status',
           type: Boolean,
           description: 'Display outstanding hours (implicit in --create-invoice)'
+        },
+        {
+          name: 'test',
+          type: Boolean,
+          description: 'Use data from test csv instead of Google Sheets'
         },
         {
           name: 'year',
@@ -154,10 +161,17 @@ if (args.month) {
   const clientIds = Object.keys(clients);
   const clidPad = Math.max(...clientIds.map(c => c.length)) + 2;
 
-  const sheets = await pMap(clientIds, async id => ({
-    clientId: id,
-    rows: await gsheets.getSheet(clients[id].sheetId)
-  }), { concurrency: 2 })
+  let sheets = [];
+  if (args.test) {
+    sheets = [
+      { clientId: 'foo', rows: parseCsv(fs.readFileSync(__dirname + '/test/test.csv').toString()) }
+    ];
+  } else {
+    sheets = await pMap(clientIds, async id => ({
+      clientId: id,
+      rows: await gsheets.getSheet(clients[id].sheetId)
+    }), { concurrency: 2 })
+  }
 
   for (let i = 0; i < sheets.length; i++) {
     const { clientId, rows } = sheets[i];
