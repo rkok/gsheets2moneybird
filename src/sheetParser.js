@@ -1,5 +1,6 @@
 const InvoiceRow = require('./model/InvoiceRow');
 const { isWithinInterval } = require('date-fns');
+const config = require('config');
 
 const REQUIRED_COLS = ['count', 'date', 'description', 'invoiceNo'];
 
@@ -32,12 +33,12 @@ const parseInvoiceRows = (rows, opts) => {
   };
 
   rows[0].forEach((col, nc) => {
-    if (col === 'Uren') cols.count = nc;
-    else if (col === 'Uurtarief') cols.fee = nc;
-    else if (col === 'Datum') cols.date = nc;
-    else if (col === 'Klant') cols.client = nc;
-    else if (col === 'Factuurnr.') cols.invoiceNo = nc;
-    else if (col === 'Omschrijving') cols.description = nc;
+    if (col === config.columnNames.numberOfHours) cols.count = nc;
+    else if (col === config.columnNames.hourlyRate) cols.fee = nc;
+    else if (col === config.columnNames.date) cols.date = nc;
+    else if (col === config.columnNames.customer) cols.client = nc;
+    else if (col === config.columnNames.invoiceNumber) cols.invoiceNo = nc;
+    else if (col === config.columnNames.description) cols.description = nc;
   });
 
   if (!REQUIRED_COLS.every(col => cols[col] !== null)) {

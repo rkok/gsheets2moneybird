@@ -1,0 +1,7 @@
+// See default.js for the base config
+
+module.exports = {
+  columnNames: {
+    numberOfHours: 'Foo'
+  }
+}
