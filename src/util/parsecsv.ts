@@ -1,10 +1,11 @@
 /**
  * Poor man's csv parser
- * @param {string} csv CSV file contents
+ * @param csv CSV file contents
+ * @returns Parsed CSV rows
  */
-module.exports = (csv) => {
+function parseCsv(csv: string): string[][] {
   const lines = csv.split('\n');
-  const rows = [];
+  const rows: string[][] = [];
 
   for (let i = 0; i < lines.length; i++) {
     if (!lines[i].trim().length) continue;
@@ -12,4 +13,6 @@ module.exports = (csv) => {
   }
 
   return rows;
-};
+}
+
+export = parseCsv;

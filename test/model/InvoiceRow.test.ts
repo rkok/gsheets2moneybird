@@ -1,17 +1,17 @@
-const InvoiceRow = require('../../src/model/InvoiceRow');
+import InvoiceRow = require('../../src/model/InvoiceRow');
 
 describe('InvoiceRow', () => {
   describe('date parsing', () => {
     it('parses YYYY-MM-DD date format', () => {
       const row = new InvoiceRow();
       row.date = '2022-01-15';
-      expect(row.date.format('YYYY-MM-DD')).toBe('2022-01-15');
+      expect(row.date!.format('YYYY-MM-DD')).toBe('2022-01-15');
     });
 
     it('parses DD-MM-YYYY date format', () => {
       const row = new InvoiceRow();
       row.date = '15-01-2022';
-      expect(row.date.format('YYYY-MM-DD')).toBe('2022-01-15');
+      expect(row.date!.format('YYYY-MM-DD')).toBe('2022-01-15');
     });
 
     it('throws on invalid date format', () => {
@@ -116,7 +116,7 @@ describe('InvoiceRow', () => {
       const row = InvoiceRow.create('2,5', '€45,50', '2022-01-15', 'Test description');
       expect(row.count).toBe(2.5);
       expect(row.fee).toBe(45.5);
-      expect(row.date.format('YYYY-MM-DD')).toBe('2022-01-15');
+      expect(row.date!.format('YYYY-MM-DD')).toBe('2022-01-15');
       expect(row.description).toBe('Test description');
     });
   });
@@ -177,7 +177,7 @@ describe('InvoiceRow', () => {
       const row = InvoiceRow.create('4', '€30.00', '2024-08-06', 'Implementation work');
       expect(row.count).toBe(4);
       expect(row.fee).toBe(30);
-      expect(row.date.format('YYYY-MM-DD')).toBe('2024-08-06');
+      expect(row.date!.format('YYYY-MM-DD')).toBe('2024-08-06');
       expect(row.description).toBe('Implementation work');
     });
 
@@ -185,7 +185,7 @@ describe('InvoiceRow', () => {
       const row = InvoiceRow.create('0.25', '€42.00', '12-07-2022', 'Code review');
       expect(row.count).toBe(0.25);
       expect(row.fee).toBe(42);
-      expect(row.date.format('YYYY-MM-DD')).toBe('2022-07-12');
+      expect(row.date!.format('YYYY-MM-DD')).toBe('2022-07-12');
       expect(row.description).toBe('Code review');
     });
 
@@ -193,7 +193,7 @@ describe('InvoiceRow', () => {
       const row = InvoiceRow.create('1,75', '€45,50', '16-07-2024', 'Bug fixing');
       expect(row.count).toBe(1.75);
       expect(row.fee).toBe(45.5);
-      expect(row.date.format('YYYY-MM-DD')).toBe('2024-07-16');
+      expect(row.date!.format('YYYY-MM-DD')).toBe('2024-07-16');
       expect(row.description).toBe('Bug fixing');
     });
 

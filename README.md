@@ -6,7 +6,7 @@ Google Sheets to Moneybird invoice exporter
 ## Setup
 
 1. Copy `config/local.js.example` to `config/local.js` and configure as needed
-2. Run the application: `node ./` and follow the steps shown.  
+2. Run the application: `npm start` and follow the steps shown.
    Repeat this step until all dependencies are met.
    Dependencies are:
    - Google Sheets service account token
@@ -15,7 +15,7 @@ Google Sheets to Moneybird invoice exporter
 
 ## How to use
 
-For a list of options, just run: `node .`
+For a list of options, just run: `npm start`
 
 The application will read invoice rows from clients' Google Sheets
 and create a new draft invoices in Moneybird, linked to the Dummy Client. 
@@ -28,23 +28,23 @@ Below are some examples.
 
 ### Show invoiceable amount of money for all clients
 
-`node . --status`
+`npm start -- --status`
 
 ### Create invoices in MoneyBird
 
-`node . --create-invoice`
+`npm start -- --create-invoice`
 
 ### Create invoice for only 'fooClient' and 'barClient'
 
-`node . --create-invoice --clients fooClient,barClient`
+`npm start -- --create-invoice --clients fooClient,barClient`
 
 ### Show revenue for January 2020
 
-`node . --status --month 2020-01`
+`npm start -- --status --month 2020-01`
 
 ### Download unpaid invoice PDFs
 
-`node . --dl-pdf`
+`npm start -- --dl-pdf`
 
 ## Assumptions
 
