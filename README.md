@@ -5,8 +5,14 @@ Google Sheets to Moneybird invoice exporter
 
 ## Setup
 
-1. Copy `config/local.js.example` to `config/local.js` and configure as needed
-2. Run the application: `npm start` and follow the steps shown.
+1. Make sure you have the right node version. See `.nvmrc` for the right version.
+   If it needs to be loaded, [nvm](https://nvm.sh) can be used:
+     nvm install
+     nvm use
+2. Install dependencies: `npm install`
+3. Build the application: `npm run build`
+4. Copy `config/local.js.example` to `config/local.js` and configure as needed
+5. Run the application: `npm start` or `./gs2mb` and follow the steps shown.
    Repeat this step until all dependencies are met.
    Dependencies are:
    - Google Sheets service account token
@@ -15,7 +21,8 @@ Google Sheets to Moneybird invoice exporter
 
 ## How to use
 
-For a list of options, just run: `npm start`
+For a list of options, just run: `./gs2mb`
+(alternative: `npm start` and `npm start -- ...` for arguments)
 
 The application will read invoice rows from clients' Google Sheets
 and create a new draft invoices in Moneybird, linked to the Dummy Client. 
@@ -28,23 +35,23 @@ Below are some examples.
 
 ### Show invoiceable amount of money for all clients
 
-`npm start -- --status`
+`./gs2mb --status`
 
 ### Create invoices in MoneyBird
 
-`npm start -- --create-invoice`
+`./gs2mb --create-invoice`
 
 ### Create invoice for only 'fooClient' and 'barClient'
 
-`npm start -- --create-invoice --clients fooClient,barClient`
+`./gs2mb --create-invoice --clients fooClient,barClient`
 
 ### Show revenue for January 2020
 
-`npm start -- --status --month 2020-01`
+`./gs2mb --status --month 2020-01`
 
 ### Download unpaid invoice PDFs
 
-`npm start -- --dl-pdf`
+`./gs2mb --dl-pdf`
 
 ## Assumptions
 

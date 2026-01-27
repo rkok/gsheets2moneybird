@@ -50,7 +50,7 @@ const args = cargs([
 if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args['dl-pdf'] && !args['status'])) {
   console.log(cusage([
     {
-      content: "Usage: node ./ --create-invoice|--dl-pdf|--status [--clients ...] [--month YYYY-MM]"
+      content: `Usage: gs2mb --create-invoice|--dl-pdf|--status [--clients ...] [--month YYYY-MM]`
     },
     {
       header: 'Options',
