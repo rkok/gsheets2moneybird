@@ -1,6 +1,5 @@
 {
   "client_id": "...",
   "client_secret": "...",
-  "administration_id": "...",
-  "dummy_contact_id": "..."
+  "administration_id": "..."
 }

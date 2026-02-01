@@ -4,6 +4,7 @@
 
 export interface ClientConfig {
   sheetId: string;
+  mbContactId: string;
   defaultFee?: number;
   includeVat?: boolean;
 }

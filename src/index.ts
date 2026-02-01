@@ -19,10 +19,9 @@ if (!fs.existsSync(path.resolve(__dirname, '../config/gsheets-token.json'))) {
   process.exit(1);
 } else if (!fs.existsSync(path.resolve(__dirname, '../config/moneybird.json'))) {
   console.error('config/moneybird.json not found');
-  console.error('  Create it, containing an object with: client_id, client_secret, administration_id, dummy_contact_id }');
+  console.error('  Create it, containing an object with: client_id, client_secret, administration_id }');
   console.error('  The client_* details can be obtained through https://moneybird.com/user/applications');
   console.error('  The administration id can be seen in the URL path when viewing the administration on moneybird.com');
-  console.error("  The dummy contact id can be seen in the URL path when viewing your dummy contact on moneybird.com. Create one if you don't have one yet.");
   process.exit(1);
 } else if (!fs.existsSync(path.resolve(__dirname, '../config/moneybird-token.json'))) {
   console.error('config/moneybird-token.json not found');
@@ -215,9 +214,14 @@ if (args.month) {
       includeVat = configTyped.includeVat!; // Global VAT setting
     }
 
+    if (!client.mbContactId) {
+      console.error(`No mbContactId configured for client '${clientId}'. Skipping invoice creation.`);
+      continue;
+    }
+
     console.log('Creating invoice ...');
     await mb.init();
-    const invoiceId = await mb.createSalesInvoice(invoiceRows, includeVat);
+    const invoiceId = await mb.createSalesInvoice(invoiceRows, includeVat, client.mbContactId);
     console.log(`Created invoice: https://moneybird.com/${mbcfg.administration_id}/sales_invoices/${invoiceId}`);
   }
 

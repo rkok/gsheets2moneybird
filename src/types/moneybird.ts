@@ -2,7 +2,6 @@ export interface MoneybirdConfig {
   client_id: string;
   client_secret: string;
   administration_id: string;
-  dummy_contact_id: string;
 }
 
 export interface MoneybirdToken {

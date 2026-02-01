@@ -66,7 +66,7 @@ const getZeroVatRateId = async (): Promise<string | false> => {
  * @param cfg
  * @returns invoiceId
  */
-const createSalesInvoice = async (rows: InvoiceRow[], includeVat: boolean = true, cfg: MoneybirdConfig): Promise<string> => {
+const createSalesInvoice = async (rows: InvoiceRow[], includeVat: boolean = true, contactId: string): Promise<string> => {
   let mbRows: MoneybirdInvoiceDetail[] = rows.map(row => row.toMoneybirdRow());
 
   if (includeVat === false) {
@@ -81,7 +81,7 @@ const createSalesInvoice = async (rows: InvoiceRow[], includeVat: boolean = true
 
   const res = await ax.post<MoneybirdSalesInvoice>(`${apiBaseUrl}/sales_invoices`, {
     sales_invoice: {
-      contact_id: cfg.dummy_contact_id,
+      contact_id: contactId,
       details_attributes: mbRows
     }
   });
@@ -108,7 +108,7 @@ function createMoneybirdAPI(mbcfg: MoneybirdConfig) {
     getAuthRequestToken: (authCode: string) => getAuthRequestToken(authCode, mbcfg),
     writeTokenFile,
     getAllSalesInvoices,
-    createSalesInvoice: (rows: InvoiceRow[], includeVat: boolean) => createSalesInvoice(rows, includeVat, mbcfg),
+    createSalesInvoice: (rows: InvoiceRow[], includeVat: boolean, contactId: string) => createSalesInvoice(rows, includeVat, contactId),
     /**
      * @param id
      * @returns

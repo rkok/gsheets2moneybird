@@ -8,12 +8,16 @@ module.exports = {
   clients: {
     bar: {
       // The sheet ID in Google Sheets - can be found in the URL
-      sheetId: "xxxxxxxxxxxxx"
+      sheetId: "xxxxxxxxxxxxx",
+      // The Moneybird contact ID for this client
+      // Can be found by running `npm run mb-list-contacts`
+      mbContactId: "000000000000000000"
     },
     foo: {
       // Default hourly fee for this client (unless overridden in a sheet row)
       defaultFee: 15,
-      sheetId: "yyyyyyyyyyyyy"
+      sheetId: "yyyyyyyyyyyyy",
+      mbContactId: "000000000000000001"
     }
   },
   // Configure this if you use custom column names in our sheets (see default.js for the defaults)

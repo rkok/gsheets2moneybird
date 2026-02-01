@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "mb-initial-token": "npm run build && node dist/script/mb-initial-token.js"
+    "mb-initial-token": "npm run build && node dist/script/mb-initial-token.js",
+    "mb-list-contacts": "npm run build && node dist/script/mb-list-contacts.js"
   },
   "author": "rkok <info@rkok.nl>",
   "license": "GNU GPLv3",
