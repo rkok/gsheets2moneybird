@@ -1,0 +1,2 @@
+- automatic local.js structure config generator based on what we get from the Moneybird API
+- implement a proper onboarding wizard (instead of having to run the app multiple types, run a separate script etc.)
