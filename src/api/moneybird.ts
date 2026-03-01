@@ -79,9 +79,22 @@ const createSalesInvoice = async (rows: InvoiceRow[], includeVat: boolean = true
     });
   }
 
+  // Auto-set reference to "Mon YYYY" if all rows are from the same month
+  let reference: string | undefined;
+  if (rows.length > 0) {
+    const firstDate = rows[0].date;
+    const allSameMonth = rows.every(row =>
+      row.date.year() === firstDate.year() && row.date.month() === firstDate.month()
+    );
+    if (allSameMonth) {
+      reference = firstDate.locale('en').format('MMM YYYY');
+    }
+  }
+
   const res = await ax.post<MoneybirdSalesInvoice>(`${apiBaseUrl}/sales_invoices`, {
     sales_invoice: {
       contact_id: contactId,
+      ...(reference && { reference }),
       details_attributes: mbRows
     }
   });

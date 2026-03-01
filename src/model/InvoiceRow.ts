@@ -8,18 +8,20 @@ interface MoneybirdRow {
 }
 
 class InvoiceRow {
-  _count: number | null = null;
-  _fee: number | null = null;
-  _date: Moment | null = null;
-  description: string | null = null;
+  _count!: number;
+  _fee!: number;
+  _date!: Moment;
+  _description!: string;
 
   static create(count: string | number, fee: string | number, date: string, description: string): InvoiceRow {
-    const row = new InvoiceRow();
-    row.count = count;
-    row.fee = fee;
-    row.date = date;
-    row.description = description;
-    return row;
+    return new InvoiceRow(count, fee, date, description);
+  }
+
+  private constructor(count: string | number, fee: string | number, date: string, description: string) {
+    this.count = count;
+    this.fee = fee;
+    this.date = date;
+    this.description = description;
   }
 
   set count(count: string | number) {
@@ -30,7 +32,7 @@ class InvoiceRow {
     }
   }
 
-  get count(): number | null {
+  get count(): number {
     return this._count;
   }
 
@@ -42,7 +44,7 @@ class InvoiceRow {
     }
   }
 
-  get fee(): number | null {
+  get fee(): number {
     return this._fee;
   }
 
@@ -61,20 +63,24 @@ class InvoiceRow {
     throw new Error(`Unexpected date format: ${date}`);
   }
 
-  /**
-   * @returns {Moment|null}
-   */
-  get date(): Moment | null {
+  get date(): Moment {
     return this._date;
   }
 
+  set description(description: string) {
+    this._description = description;
+  }
+
+  get description(): string {
+    return this._description;
+  }
+
   toMoneybirdRow(): MoneybirdRow {
-    // TODO: Add null checks - this method can crash if date, fee, or count are null
     return {
-      description: this.description!,
-      period: this._date!.format('YYYYMMDD..YYYYMMDD'),
-      price: this._fee!,
-      amount: this._count!
+      description: this.description,
+      period: this._date.format('YYYYMMDD..YYYYMMDD'),
+      price: this._fee,
+      amount: this._count
     };
   }
 }
