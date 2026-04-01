@@ -1,6 +1,7 @@
 import InvoiceRow = require('./model/InvoiceRow');
-import { isWithinInterval } from 'date-fns';
 import config = require('config');
+import logger = require('./util/logger');
+import { isWithinInterval } from 'date-fns';
 import { ParseInvoiceRowsOptions } from './types/internal';
 import { AppConfig } from './types/config';
 
@@ -71,7 +72,7 @@ export function parseInvoiceRows(rows: string[][], opts: ParseInvoiceRowsOptions
     const [start, end] = opts.dateRange;
     filteredRows = filteredRows.filter(row => {
       if (!row[cols.date!]) {
-        console.error('Skipping row due to missing date');
+        logger.error('Skipping row due to missing date');
         // TODO: Fixed indentation (was using tab character)
         return false;
       }
@@ -83,9 +84,8 @@ export function parseInvoiceRows(rows: string[][], opts: ParseInvoiceRowsOptions
   }
 
   return filteredRows.map((row: string[], nr: number) => {
-    const irow = new InvoiceRow();
-    irow.count = row[cols.count!];
-    irow.fee = cols.fee !== null && row[cols.fee] !== undefined && row[cols.fee].length > 0
+    const count = row[cols.count!];
+    const fee = cols.fee !== null && row[cols.fee] !== undefined && row[cols.fee].length > 0
       ? Number(row[cols.fee].replace(/€\s?/, '').replace(',', '.'))
       : opts.defaultFee!;
 
@@ -94,16 +94,14 @@ export function parseInvoiceRows(rows: string[][], opts: ParseInvoiceRowsOptions
       desc += `${row[cols.client]}: `;
     }
     desc += row[cols.description!];
-    irow.description = desc;
 
     try {
-      irow.date = row[cols.date!];
+      const date = row[cols.date!];
+      return InvoiceRow.create(count, fee, date, desc);
     } catch (e) {
       const error = e as Error;
       throw new Error(`Error mapping new invoice row ${nr}: ${error.message}  - row data: ${JSON.stringify(row)}`);
     }
-
-    return irow;
   });
 }
 

@@ -1,5 +1,6 @@
 import fs = require('fs');
 import path = require('path');
+import logger = require('../util/logger');
 import axios from 'axios';
 import { MoneybirdConfig, MoneybirdToken } from '../types/moneybird';
 
@@ -27,20 +28,20 @@ async function main() {
     headers: { Authorization: `Bearer ${accessToken}` }
   });
   if (res.status !== 200) {
-    console.error(`Error fetching contacts: ${res.status} ${JSON.stringify(res.data)}`);
+    logger.error(`Error fetching contacts: ${res.status} ${JSON.stringify(res.data)}`);
     process.exit(1);
   }
 
-  console.log('ID                    Company / Name');
-  console.log('--------------------  ----------------------------------------');
+  logger.info('ID                    Company / Name');
+  logger.info('--------------------  ----------------------------------------');
   for (const contact of res.data) {
     const name = contact.company_name || `${contact.firstname || ''} ${contact.lastname || ''}`.trim() || '(no name)';
-    console.log(`${contact.id.padEnd(22)}${name}`);
+    logger.info(`${contact.id.padEnd(22)}${name}`);
   }
-  console.log(`\nTotal: ${res.data.length} contacts`);
+  logger.info(`\nTotal: ${res.data.length} contacts`);
 }
 
 main().catch(err => {
-  console.error(err.message || err);
+  logger.error(err.message || err);
   process.exit(1);
 });

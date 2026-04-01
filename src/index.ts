@@ -4,8 +4,9 @@ import path = require('path');
 import cargs = require('command-line-args');
 import cusage = require('command-line-usage');
 import pMap = require('p-map');
-import { parseInvoiceRows } from './sheetParser';
 import parseCsv = require('./util/parsecsv');
+import logger = require('./util/logger');
+import { parseInvoiceRows } from './sheetParser';
 import { addMonths } from 'date-fns';
 import { CommandLineArgs, SheetData } from './types/internal';
 import { AppConfig, ClientConfig } from './types/config';
@@ -13,19 +14,19 @@ import { MoneybirdConfig } from './types/moneybird';
 
 // Dependency checks
 if (!fs.existsSync(path.resolve(__dirname, '../config/gsheets-token.json'))) {
-  console.error(`File 'config/gsheets-token.json' not found.`);
-  console.error(`  1. Obtain it by creating a service account on https://console.developers.google.com/apis/credentials`);
-  console.error(`  2. In the sheet(s), under 'Sharing', share access with the client_email listed within the token`);
+  logger.error(`File 'config/gsheets-token.json' not found.`);
+  logger.error(`  1. Obtain it by creating a service account on https://console.developers.google.com/apis/credentials`);
+  logger.error(`  2. In the sheet(s), under 'Sharing', share access with the client_email listed within the token`);
   process.exit(1);
 } else if (!fs.existsSync(path.resolve(__dirname, '../config/moneybird.json'))) {
-  console.error('config/moneybird.json not found');
-  console.error('  Create it, containing an object with: client_id, client_secret, administration_id }');
-  console.error('  The client_* details can be obtained through https://moneybird.com/user/applications');
-  console.error('  The administration id can be seen in the URL path when viewing the administration on moneybird.com');
+  logger.error('config/moneybird.json not found');
+  logger.error('  Create it, containing an object with: client_id, client_secret, administration_id }');
+  logger.error('  The client_* details can be obtained through https://moneybird.com/user/applications');
+  logger.error('  The administration id can be seen in the URL path when viewing the administration on moneybird.com');
   process.exit(1);
 } else if (!fs.existsSync(path.resolve(__dirname, '../config/moneybird-token.json'))) {
-  console.error('config/moneybird-token.json not found');
-  console.error('  Run: npm run mb-initial-token and follow the steps');
+  logger.error('config/moneybird-token.json not found');
+  logger.error('  Run: npm run mb-initial-token and follow the steps');
   process.exit(1);
 }
 
@@ -38,6 +39,7 @@ const mb = require('./api/moneybird')(mbcfg);
 const args = cargs([
   { name: 'clients' },
   { name: 'create-invoice', type: Boolean, defaultOption: false },
+  { name: 'debug', type: Boolean },
   { name: 'dl-pdf', type: Boolean },
   { name: 'help', type: Boolean },
   { name: 'month', type: String },
@@ -46,8 +48,14 @@ const args = cargs([
   { name: 'year', type: Number }
 ]) as CommandLineArgs;
 
+// Enable debug logging if --debug flag is set
+if (args.debug) {
+  logger.setDebug(true);
+  logger.debug('Debug logging enabled');
+}
+
 if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args['dl-pdf'] && !args['status'])) {
-  console.log(cusage([
+  logger.info(cusage([
     {
       content: `Usage: gs2mb --create-invoice|--dl-pdf|--status [--clients ...] [--month YYYY-MM]`
     },
@@ -63,6 +71,11 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
           name: 'create-invoice',
           type: Boolean,
           description: 'Create invoices in MoneyBird'
+        },
+        {
+          name: 'debug',
+          type: Boolean,
+          description: 'Enable debug logging'
         },
         {
           name: 'dl-pdf',
@@ -101,29 +114,32 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
 
 if (args['dl-pdf']) {
   if (Object.keys(args).length > 1) {
-    console.warn('--dl-pdf found, ignoring other arguments');
+    logger.warn('--dl-pdf found, ignoring other arguments');
   }
   (async () => {
+    logger.debug('Initializing Moneybird API for PDF download');
     await mb.init();
     const invoices = (await mb.getAllSalesInvoices());
+    logger.debug(`Found ${invoices.length} invoices to process`);
 
     for (let i = 0; i < invoices.length; i++) {
       const invoice = invoices[i];
       const outfile = path.resolve(__dirname, `../data/invoices/${invoice.invoice_id}.pdf`);
       process.stdout.write(`${outfile} --> `);
       if (fs.existsSync(outfile)) {
-        console.log('Exists, skipping')
+        logger.info('Exists, skipping')
       } else {
+        logger.debug(`Downloading invoice ${invoice.id}`);
         const pdfData = await mb.getSalesInvoicePdf(invoice.id);
         const outstream = fs.createWriteStream(outfile);
         pdfData.pipe(outstream);
         await new Promise<void>((resolve, reject) => {
           outstream.on('close', () => {
-            console.log('Retrieved');
+            logger.info('Retrieved');
             resolve();
           });
           outstream.on('error', () => {
-            console.log('Write error');
+            logger.error('Write error');
             reject();
           });
         });
@@ -150,31 +166,38 @@ if (args.clients) {
 let dateRange: [Date, Date] | undefined = undefined;
 if (args.month) {
   if (!args.month.match(/^[0-9]{4}-(?:0[1-9]|1[0-2])$/)) {
-    console.error('Invalid --month, expected YYYY-MM');
+    logger.error('Invalid --month, expected YYYY-MM');
     process.exit(1);
   }
   const start = new Date(`${args.month}-01T00:00:00.000Z`);
   dateRange = [start, addMonths(start, 1)];
+  logger.debug(`Date range set to: ${start.toISOString()} - ${addMonths(start, 1).toISOString()}`);
 } else if (args.year) {
   const start = new Date(`${args.year}-01-01T00:00:00.000Z`);
   dateRange = [start, addMonths(start, 12)];
+  logger.debug(`Date range set to year ${args.year}`);
 }
 
 (async () => {
   let totalMultiInvoiceFee = 0;
   const clientIds = Object.keys(clients);
   const clidPad = Math.max(...clientIds.map(c => c.length)) + 2;
+  logger.debug(`Processing ${clientIds.length} client(s): ${clientIds.join(', ')}`);
 
   let sheets: SheetData[] = [];
   if (args.test) {
+    logger.debug('Using test CSV data');
     sheets = [
       { clientId: 'foo', rows: parseCsv(fs.readFileSync(__dirname + '/../test/test.csv').toString()) }
     ];
   } else {
-    sheets = await pMap(clientIds, async (id: string): Promise<SheetData> => ({
-      clientId: id,
-      rows: await gsheets.getSheet(clients[id].sheetId)
-    }), { concurrency: 2 })
+    logger.debug('Fetching sheets from Google Sheets');
+    sheets = await pMap(clientIds, async (id: string): Promise<SheetData> => {
+      logger.debug(`Fetching sheet for client: ${id} (sheetId: ${clients[id].sheetId})`);
+      const rows = await gsheets.getSheet(clients[id].sheetId);
+      logger.debug(`Retrieved ${rows.length} rows for client: ${id}`);
+      return { clientId: id, rows };
+    }, { concurrency: 2 })
   }
 
   for (let i = 0; i < sheets.length; i++) {
@@ -182,11 +205,13 @@ if (args.month) {
     const client = clients[clientId];
 
     const parseOpts = { defaultFee: client?.defaultFee ?? configTyped.defaultFee, dateRange };
+    logger.debug(`Parsing invoice rows for client: ${clientId}`);
     const invoiceRows = parseInvoiceRows(rows, parseOpts);
+    logger.debug(`Parsed ${invoiceRows.length} invoice rows for client: ${clientId}`);
 
     const totalInvoiceFee = invoiceRows.reduce((total, irow) => {
       if (isNaN(Number(irow.fee))) {
-        console.error(`[!] Skipping row with invalid count or fee: "${irow.description}"`)
+        logger.error(`[!] Skipping row with invalid count or fee: "${irow.description}"`)
         return total;
       }
       return total + irow.count! * irow.fee!;
@@ -196,14 +221,14 @@ if (args.month) {
       currency: 'EUR',
       useGrouping: false
     }).format(totalInvoiceFee).replace('€', ' ').padStart(11);
-    console.log(`${clientId.padEnd(clidPad, ' ')} - Total: €${totalInvoiceFeeFmt}`);
+    logger.info(`${clientId.padEnd(clidPad, ' ')} - Total: €${totalInvoiceFeeFmt}`);
 
     totalMultiInvoiceFee += totalInvoiceFee;
 
     if (!args['create-invoice']) {
       continue;
     } else if (invoiceRows.length === 0) {
-      console.log('Nothing to bill to client. Skipping invoice creation');
+      logger.info('Nothing to bill to client. Skipping invoice creation');
       continue;
     }
 
@@ -213,16 +238,19 @@ if (args.month) {
     } else if (configTyped.hasOwnProperty('includeVat')) {
       includeVat = configTyped.includeVat!; // Global VAT setting
     }
+    logger.debug(`VAT setting for client ${clientId}: ${includeVat ? 'included' : 'excluded'}`);
 
     if (!client.mbContactId) {
-      console.error(`No mbContactId configured for client '${clientId}'. Skipping invoice creation.`);
+      logger.error(`No mbContactId configured for client '${clientId}'. Skipping invoice creation.`);
       continue;
     }
 
-    console.log('Creating invoice ...');
+    logger.info('Creating invoice ...');
+    logger.debug(`Initializing Moneybird API`);
     await mb.init();
+    logger.debug(`Creating sales invoice for contact: ${client.mbContactId}`);
     const invoiceId = await mb.createSalesInvoice(invoiceRows, includeVat, client.mbContactId);
-    console.log(`Created invoice: https://moneybird.com/${mbcfg.administration_id}/sales_invoices/${invoiceId}`);
+    logger.info(`Created invoice: https://moneybird.com/${mbcfg.administration_id}/sales_invoices/${invoiceId}`);
   }
 
   const totalMultiInvoiceFeeFmt = new Intl.NumberFormat('nl-NL', {
@@ -230,5 +258,5 @@ if (args.month) {
     currency: 'EUR',
     useGrouping: false
   }).format(totalMultiInvoiceFee).replace('€', ' ').padStart(11);
-  console.log(`${''.padEnd(clidPad, '#')}######### €${totalMultiInvoiceFeeFmt}`);
+  logger.info(`${''.padEnd(clidPad, '#')}######### €${totalMultiInvoiceFeeFmt}`);
 })();

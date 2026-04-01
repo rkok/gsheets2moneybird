@@ -11,6 +11,7 @@ export interface SheetData {
 export interface CommandLineArgs {
   clients?: string;
   'create-invoice'?: boolean;
+  debug?: boolean;
   'dl-pdf'?: boolean;
   help?: boolean;
   month?: string;
