@@ -206,7 +206,13 @@ if (args.month) {
 
     const parseOpts = { defaultFee: client?.defaultFee ?? configTyped.defaultFee, dateRange };
     logger.debug(`Parsing invoice rows for client: ${clientId}`);
-    const invoiceRows = parseInvoiceRows(rows, parseOpts);
+    let invoiceRows;
+    try {
+      invoiceRows = parseInvoiceRows(rows, parseOpts);
+    } catch (e) {
+      const error = e as Error;
+      throw new Error(`[${clientId}] ${error.message}`);
+    }
     logger.debug(`Parsed ${invoiceRows.length} invoice rows for client: ${clientId}`);
 
     const totalInvoiceFee = invoiceRows.reduce((total, irow) => {
