@@ -89,6 +89,10 @@ export function parseInvoiceRows(rows: string[][], opts: ParseInvoiceRowsOptions
       ? Number(row[cols.fee].replace(/€\s?/, '').replace(',', '.'))
       : opts.defaultFee!;
 
+    if (cols.fee && Number.isNaN(fee)) {
+      throw new Error(`Error parsing hourly rate for row ${nr}: ${row[cols.fee]}`);
+    }
+
     let desc = '';
     if (cols.client && row[cols.client]) {
       desc += `${row[cols.client]}: `;
