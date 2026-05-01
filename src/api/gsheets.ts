@@ -35,12 +35,11 @@ const getSheet = (spreadsheetId: string, range: string = 'A1:M10000'): Promise<s
 
 function createGSheetsAPI(jwt: JWTCredentials): GSheetsAPI {
   logger.debug(`Initializing Google Sheets API with service account: ${jwt.client_email}`);
-  const auth = new google.auth.JWT(
-    jwt.client_email,
-    undefined,
-    jwt.private_key,
-    ['https://www.googleapis.com/auth/spreadsheets']
-  );
+  const auth = new google.auth.JWT({
+    email: jwt.client_email,
+    key: jwt.private_key,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
 
   sheetsApi = google.sheets({ version: 'v4', auth });
 
