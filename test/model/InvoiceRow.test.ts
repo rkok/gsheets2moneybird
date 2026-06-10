@@ -1,63 +1,64 @@
 import InvoiceRow = require('../../src/model/InvoiceRow');
 
 describe('InvoiceRow', () => {
+  const createRow = () => InvoiceRow.create(0, 0, '2022-01-01', '');
   describe('date parsing', () => {
     it('parses YYYY-MM-DD date format', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.date = '2022-01-15';
       expect(row.date!.format('YYYY-MM-DD')).toBe('2022-01-15');
     });
 
     it('parses DD-MM-YYYY date format', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.date = '15-01-2022';
       expect(row.date!.format('YYYY-MM-DD')).toBe('2022-01-15');
     });
 
     it('throws on invalid date format', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       expect(() => { row.date = 'invalid'; }).toThrow('Unexpected date format');
     });
 
     it('throws on partial date format', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       expect(() => { row.date = '2022-01'; }).toThrow('Unexpected date format');
     });
   });
 
   describe('fee parsing', () => {
     it('parses fee with € symbol and space', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.fee = '€ 50';
       expect(row.fee).toBe(50);
     });
 
     it('parses fee with € symbol without space', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.fee = '€50';
       expect(row.fee).toBe(50);
     });
 
     it('parses fee with comma decimal', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.fee = '45,50';
       expect(row.fee).toBe(45.5);
     });
 
     it('parses fee with € and comma decimal', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.fee = '€45,50';
       expect(row.fee).toBe(45.5);
     });
 
     it('parses integer fee as string', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.fee = '30';
       expect(row.fee).toBe(30);
     });
 
     it('accepts numeric fee directly', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.fee = 75;
       expect(row.fee).toBe(75);
     });
@@ -65,47 +66,47 @@ describe('InvoiceRow', () => {
 
   describe('count parsing', () => {
     it('parses count with comma decimal', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.count = '2,5';
       expect(row.count).toBe(2.5);
     });
 
     it('parses integer count as string', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.count = '8';
       expect(row.count).toBe(8);
     });
 
     it('accepts numeric count directly', () => {
-      const row = new InvoiceRow();
+      const row = createRow();
       row.count = 3.5;
       expect(row.count).toBe(3.5);
     });
 
     it('parses realistic fractional hours from fixtures', () => {
-      const row1 = new InvoiceRow();
+      const row1 = createRow();
       row1.count = '0.1667';
       expect(row1.count).toBe(0.1667);
 
-      const row2 = new InvoiceRow();
+      const row2 = createRow();
       row2.count = '0.083';
       expect(row2.count).toBe(0.083);
 
-      const row3 = new InvoiceRow();
+      const row3 = createRow();
       row3.count = '0.665';
       expect(row3.count).toBe(0.665);
     });
 
     it('parses various hour formats from real data', () => {
-      const row1 = new InvoiceRow();
+      const row1 = createRow();
       row1.count = '4.5';
       expect(row1.count).toBe(4.5);
 
-      const row2 = new InvoiceRow();
+      const row2 = createRow();
       row2.count = '0,25';
       expect(row2.count).toBe(0.25);
 
-      const row3 = new InvoiceRow();
+      const row3 = createRow();
       row3.count = '1,75';
       expect(row3.count).toBe(1.75);
     });
