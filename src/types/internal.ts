@@ -9,6 +9,7 @@ export interface SheetData {
 }
 
 export interface CommandLineArgs {
+  command?: string;
   clients?: string;
   'create-invoice'?: boolean;
   debug?: boolean;

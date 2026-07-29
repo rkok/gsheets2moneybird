@@ -15,21 +15,23 @@ import { MoneybirdConfig } from './types/moneybird';
 
 // CLI arguments check
 const args = cargs([
+  { name: 'command', defaultOption: true },
   { name: 'clients' },
-  { name: 'create-invoice', type: Boolean, defaultOption: false },
   { name: 'debug', type: Boolean },
-  { name: 'dl-pdf', type: Boolean },
   { name: 'financial-account-id', type: String },
   { name: 'help', type: Boolean },
   { name: 'invoice', type: String },
   { name: 'manual-payment-action', type: String },
   { name: 'month', type: String },
   { name: 'payment-date', type: String },
-  { name: 'register-payment', type: Boolean },
-  { name: 'status', type: Boolean },
   { name: 'test', type: Boolean },
   { name: 'year', type: Number }
 ]) as CommandLineArgs;
+
+const commands = ['create-invoice', 'dl-pdf', 'register-payment', 'status'] as const;
+if (args.command && commands.includes(args.command as typeof commands[number])) {
+  args[args.command as typeof commands[number]] = true;
+}
 
 const gsheetsTokenFile = path.resolve(__dirname, '../config/gsheets-token.json');
 const moneybirdConfigFile = path.resolve(__dirname, '../config/moneybird.json');
@@ -67,7 +69,7 @@ if (args.debug) {
 if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args['dl-pdf'] && !args['register-payment'] && !args['status'])) {
   logger.info(cusage([
     {
-      content: `Usage: gs2mb --create-invoice|--dl-pdf|--register-payment|--status [options]`
+      content: `Usage: gs2mb <command> [options]\n\nCommands: create-invoice, dl-pdf, register-payment, status`
     },
     {
       header: 'Options',
@@ -78,24 +80,14 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
           description: 'Filter names of clients to include'
         },
         {
-          name: 'create-invoice',
-          type: Boolean,
-          description: 'Create invoices in MoneyBird'
-        },
-        {
           name: 'debug',
           type: Boolean,
           description: 'Enable debug logging'
         },
         {
-          name: 'dl-pdf',
-          type: Boolean,
-          description: 'Download unpaid invoice PDFs'
-        },
-        {
           name: 'financial-account-id',
           type: String,
-          description: 'Moneybird financial account ID for --register-payment. Overrides config default; otherwise auto-picks when only one account exists.'
+          description: 'Moneybird financial account ID for register-payment. Overrides config default; otherwise auto-picks when only one account exists.'
         },
         {
           name: 'help',
@@ -105,12 +97,12 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
         {
           name: 'invoice',
           type: String,
-          description: 'Invoice number for --register-payment, e.g. 2026-0034'
+          description: 'Invoice number for register-payment, e.g. 2026-0034'
         },
         {
           name: 'manual-payment-action',
           type: String,
-          description: 'Payment action for --register-payment. Defaults to private_payment.'
+          description: 'Payment action for register-payment. Defaults to private_payment.'
         },
         {
           name: 'month',
@@ -120,17 +112,7 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
         {
           name: 'payment-date',
           type: String,
-          description: 'Payment date for --register-payment, YYYY-MM-DD'
-        },
-        {
-          name: 'register-payment',
-          type: Boolean,
-          description: 'Register a payment for an invoice in Moneybird'
-        },
-        {
-          name: 'status',
-          type: Boolean,
-          description: 'Display outstanding hours (implicit in --create-invoice)'
+          description: 'Payment date for register-payment, YYYY-MM-DD'
         },
         {
           name: 'test',
@@ -170,8 +152,8 @@ if (args['register-payment']) {
     process.exit(1);
   });
 } else if (args['dl-pdf']) {
-  if (Object.keys(args).length > 1) {
-    logger.warn('--dl-pdf found, ignoring other arguments');
+  if (Object.keys(args).filter(arg => arg !== 'command').length > 1) {
+    logger.warn('dl-pdf found, ignoring other arguments');
   }
   (async () => {
     logger.debug('Initializing Moneybird API for PDF download');

@@ -35,23 +35,23 @@ Below are some examples.
 
 ### Show invoiceable amount of money for all clients
 
-`./gs2mb --status`
+`./gs2mb status`
 
 ### Create invoices in MoneyBird
 
-`./gs2mb --create-invoice`
+`./gs2mb create-invoice`
 
 ### Create invoice for only 'fooClient' and 'barClient'
 
-`./gs2mb --create-invoice --clients fooClient,barClient`
+`./gs2mb create-invoice --clients fooClient,barClient`
 
 ### Show revenue for January 2020
 
-`./gs2mb --status --month 2020-01`
+`./gs2mb status --month 2020-01`
 
 ### Download unpaid invoice PDFs
 
-`./gs2mb --dl-pdf`
+`./gs2mb dl-pdf`
 
 ## Assumptions
 
@@ -74,4 +74,4 @@ Column names can be configured in [config/local.js](config/local.js)
 Currency is hardcoded to Euro.
 
 Dutch (DD-MM-YYYY) date formats are assumed for '00-00-0000'-style dates, and
-numbers are formatted Dutch-style during `--status`.
+numbers are formatted Dutch-style during `status`.
