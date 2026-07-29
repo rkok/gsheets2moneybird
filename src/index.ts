@@ -5,6 +5,7 @@ import logger = require('./util/logger');
 import { parseArgs, usage, isCommand, CommandName } from './cli';
 import { runDownloadPdfs } from './commands/downloadPdfs';
 import { runInvoiceReport } from './commands/invoiceReport';
+import { runListInvoices } from './commands/listInvoices';
 import { runRegisterPayment } from './commands/registerPayment';
 import { AppConfig } from './types/config';
 import { MoneybirdConfig } from './types/moneybird';
@@ -20,6 +21,7 @@ type Dependency = 'gsheets' | 'moneybird';
 const needs: Record<CommandName, readonly Dependency[]> = {
   'create-invoice': ['gsheets', 'moneybird'],
   'dl-pdf': ['moneybird'],
+  'list-invoices': ['moneybird'],
   'register-payment': ['moneybird'],
   status: ['gsheets']
 };
@@ -75,6 +77,8 @@ const main = async (): Promise<void> => {
     await runInvoiceReport(args, true, mb, moneybirdConfig);
   } else if (command === 'dl-pdf') {
     await runDownloadPdfs(args, mb);
+  } else if (command === 'list-invoices') {
+    await runListInvoices(args, mb);
   } else if (command === 'register-payment') {
     await runRegisterPayment(args, mb, config as unknown as AppConfig, moneybirdConfig);
   }

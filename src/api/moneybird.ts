@@ -51,11 +51,26 @@ const writeTokenFile = (token: MoneybirdToken): void => {
   fs.writeFileSync(TOKEN_FILE, JSON.stringify(token, null, 2));
 };
 
-const getAllSalesInvoices = async (): Promise<MoneybirdSalesInvoice[]> => {
-  logger.debug('Fetching all sales invoices from Moneybird');
-  const res = await ax.get<MoneybirdSalesInvoice[]>(`${apiBaseUrl}/sales_invoices`);
-  logger.debug(`Retrieved ${res.data.length} sales invoices`);
-  return res.data;
+const getAllSalesInvoices = async (filter?: string): Promise<MoneybirdSalesInvoice[]> => {
+  logger.debug(`Fetching sales invoices from Moneybird${filter ? ` with filter ${filter}` : ''}`);
+  const invoices: MoneybirdSalesInvoice[] = [];
+  const perPage = 100;
+
+  for (let page = 1; ; page++) {
+    const res = await ax.get<MoneybirdSalesInvoice[]>(`${apiBaseUrl}/sales_invoices`, {
+      params: { page, per_page: perPage, ...(filter && { filter }) }
+    });
+    if (res.status !== 200) {
+      throw new Error(`Unable to get Moneybird sales invoices; ${res.status} ${JSON.stringify(res.data)}`);
+    }
+    invoices.push(...res.data);
+    if (res.data.length < perPage) {
+      break;
+    }
+  }
+
+  logger.debug(`Retrieved ${invoices.length} sales invoices`);
+  return invoices;
 };
 
 const getSalesInvoiceByInvoiceId = async (invoiceId: string): Promise<MoneybirdSalesInvoice> => {

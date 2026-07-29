@@ -18,6 +18,7 @@ export interface MoneybirdSalesInvoice {
   id: string;
   invoice_id: string;
   contact_id: string;
+  invoice_date?: string;
   total_unpaid: string;
   details_attributes?: MoneybirdInvoiceDetail[];
 }

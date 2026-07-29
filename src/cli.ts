@@ -2,7 +2,7 @@ import cargs = require('command-line-args');
 import cusage = require('command-line-usage');
 import { CommandLineArgs } from './types/internal';
 
-export const commandNames = ['create-invoice', 'dl-pdf', 'register-payment', 'status'] as const;
+export const commandNames = ['create-invoice', 'dl-pdf', 'list-invoices', 'register-payment', 'status'] as const;
 export type CommandName = typeof commandNames[number];
 
 export const parseArgs = (): CommandLineArgs => {
@@ -11,12 +11,14 @@ export const parseArgs = (): CommandLineArgs => {
     { name: 'clients' },
     { name: 'debug', type: Boolean },
     { name: 'financial-account-id', type: String },
+    { name: 'format', type: String },
     { name: 'help', type: Boolean },
     { name: 'invoice', type: String },
     { name: 'manual-payment-action', type: String },
     { name: 'month', type: String },
     { name: 'payment-date', type: String },
     { name: 'test', type: Boolean },
+    { name: 'unpaid', type: Boolean },
     { name: 'year', type: Number }
   ]) as CommandLineArgs;
 
@@ -54,6 +56,11 @@ export const usage = (): string => cusage([
         description: 'Moneybird financial account ID for register-payment. Overrides config default; otherwise auto-picks when only one account exists.'
       },
       {
+        name: 'format',
+        type: String,
+        description: 'Output format for list-invoices: human or json. Defaults to human.'
+      },
+      {
         name: 'help',
         type: Boolean,
         description: 'Print this usage guide.'
@@ -82,6 +89,11 @@ export const usage = (): string => cusage([
         name: 'test',
         type: Boolean,
         description: 'Use data from test csv instead of Google Sheets'
+      },
+      {
+        name: 'unpaid',
+        type: Boolean,
+        description: 'Only show unpaid invoices for list-invoices'
       },
       {
         name: 'year',
