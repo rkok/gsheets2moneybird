@@ -13,8 +13,13 @@ export interface CommandLineArgs {
   'create-invoice'?: boolean;
   debug?: boolean;
   'dl-pdf'?: boolean;
+  'financial-account-id'?: string;
   help?: boolean;
+  invoice?: string;
+  'manual-payment-action'?: string;
   month?: string;
+  'payment-date'?: string;
+  'register-payment'?: boolean;
   status?: boolean;
   test?: boolean;
   year?: number;

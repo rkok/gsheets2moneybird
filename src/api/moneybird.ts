@@ -5,7 +5,9 @@ import logger = require('../util/logger');
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import {
   MoneybirdConfig,
+  MoneybirdFinancialAccount,
   MoneybirdInvoiceDetail,
+  MoneybirdPayment,
   MoneybirdSalesInvoice,
   MoneybirdTaxRate,
   MoneybirdToken
@@ -53,6 +55,41 @@ const getAllSalesInvoices = async (): Promise<MoneybirdSalesInvoice[]> => {
   logger.debug('Fetching all sales invoices from Moneybird');
   const res = await ax.get<MoneybirdSalesInvoice[]>(`${apiBaseUrl}/sales_invoices`);
   logger.debug(`Retrieved ${res.data.length} sales invoices`);
+  return res.data;
+};
+
+const getSalesInvoiceByInvoiceId = async (invoiceId: string): Promise<MoneybirdSalesInvoice> => {
+  logger.debug(`Fetching sales invoice by invoice number: ${invoiceId}`);
+  const res = await ax.get<MoneybirdSalesInvoice>(`${apiBaseUrl}/sales_invoices/find_by_invoice_id/${encodeURIComponent(invoiceId)}`);
+  if (res.status !== 200) {
+    throw new Error(`Unable to get Moneybird sales invoice ${invoiceId}; ${res.status} ${JSON.stringify(res.data)}`);
+  }
+  return res.data;
+};
+
+const getFinancialAccounts = async (): Promise<MoneybirdFinancialAccount[]> => {
+  logger.debug('Fetching financial accounts from Moneybird');
+  const res = await ax.get<MoneybirdFinancialAccount[]>(`${apiBaseUrl}/financial_accounts`);
+  if (res.status !== 200) {
+    throw new Error(`Unable to get Moneybird financial accounts; ${res.status} ${JSON.stringify(res.data)}`);
+  }
+  return res.data;
+};
+
+const createSalesInvoicePayment = async (
+  salesInvoiceId: string,
+  payment: {
+    payment_date: string;
+    price: string;
+    manual_payment_action?: string;
+    financial_account_id?: string;
+  }
+): Promise<MoneybirdPayment> => {
+  logger.debug(`Registering payment for sales invoice: ${salesInvoiceId}`);
+  const res = await ax.post<MoneybirdPayment>(`${apiBaseUrl}/sales_invoices/${salesInvoiceId}/payments`, { payment });
+  if (res.status !== 201) {
+    throw new Error(`Error registering payment: ${res.status} ${JSON.stringify(res.data)}`);
+  }
   return res.data;
 };
 
@@ -136,6 +173,9 @@ function createMoneybirdAPI(mbcfg: MoneybirdConfig) {
     getAuthRequestToken: (authCode: string) => getAuthRequestToken(authCode, mbcfg),
     writeTokenFile,
     getAllSalesInvoices,
+    getSalesInvoiceByInvoiceId,
+    getFinancialAccounts,
+    createSalesInvoicePayment,
     createSalesInvoice: (rows: InvoiceRow[], includeVat: boolean, contactId: string) => createSalesInvoice(rows, includeVat, contactId),
     /**
      * @param id

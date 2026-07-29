@@ -6,34 +6,12 @@ import cusage = require('command-line-usage');
 import pMap = require('p-map');
 import parseCsv = require('./util/parsecsv');
 import logger = require('./util/logger');
+import registerInvoicePayment = require('./actions/registerInvoicePayment');
 import { parseInvoiceRows } from './sheetParser';
 import { addMonths } from 'date-fns';
 import { CommandLineArgs, SheetData } from './types/internal';
 import { AppConfig, ClientConfig } from './types/config';
 import { MoneybirdConfig } from './types/moneybird';
-
-// Dependency checks
-if (!fs.existsSync(path.resolve(__dirname, '../config/gsheets-token.json'))) {
-  logger.error(`File 'config/gsheets-token.json' not found.`);
-  logger.error(`  1. Obtain it by creating a service account on https://console.developers.google.com/apis/credentials`);
-  logger.error(`  2. In the sheet(s), under 'Sharing', share access with the client_email listed within the token`);
-  process.exit(1);
-} else if (!fs.existsSync(path.resolve(__dirname, '../config/moneybird.json'))) {
-  logger.error('config/moneybird.json not found');
-  logger.error('  Create it, containing an object with: client_id, client_secret, administration_id }');
-  logger.error('  The client_* details can be obtained through https://moneybird.com/user/applications');
-  logger.error('  The administration id can be seen in the URL path when viewing the administration on moneybird.com');
-  process.exit(1);
-} else if (!fs.existsSync(path.resolve(__dirname, '../config/moneybird-token.json'))) {
-  logger.error('config/moneybird-token.json not found');
-  logger.error('  Run: npm run mb-initial-token and follow the steps');
-  process.exit(1);
-}
-
-const token = require('../config/gsheets-token.json');
-const gsheets = require('./api/gsheets')(token);
-const mbcfg = require('../config/moneybird.json') as MoneybirdConfig;
-const mb = require('./api/moneybird')(mbcfg);
 
 // CLI arguments check
 const args = cargs([
@@ -41,12 +19,44 @@ const args = cargs([
   { name: 'create-invoice', type: Boolean, defaultOption: false },
   { name: 'debug', type: Boolean },
   { name: 'dl-pdf', type: Boolean },
+  { name: 'financial-account-id', type: String },
   { name: 'help', type: Boolean },
+  { name: 'invoice', type: String },
+  { name: 'manual-payment-action', type: String },
   { name: 'month', type: String },
+  { name: 'payment-date', type: String },
+  { name: 'register-payment', type: Boolean },
   { name: 'status', type: Boolean },
   { name: 'test', type: Boolean },
   { name: 'year', type: Number }
 ]) as CommandLineArgs;
+
+const gsheetsTokenFile = path.resolve(__dirname, '../config/gsheets-token.json');
+const moneybirdConfigFile = path.resolve(__dirname, '../config/moneybird.json');
+const moneybirdTokenFile = path.resolve(__dirname, '../config/moneybird-token.json');
+const needsSheets = !args['register-payment'] && !args['dl-pdf'];
+
+// Dependency checks
+if (needsSheets && !fs.existsSync(gsheetsTokenFile)) {
+  logger.error(`File 'config/gsheets-token.json' not found.`);
+  logger.error(`  1. Obtain it by creating a service account on https://console.developers.google.com/apis/credentials`);
+  logger.error(`  2. In the sheet(s), under 'Sharing', share access with the client_email listed within the token`);
+  process.exit(1);
+} else if (!fs.existsSync(moneybirdConfigFile)) {
+  logger.error('config/moneybird.json not found');
+  logger.error('  Create it, containing an object with: client_id, client_secret, administration_id }');
+  logger.error('  The client_* details can be obtained through https://moneybird.com/user/applications');
+  logger.error('  The administration id can be seen in the URL path when viewing the administration on moneybird.com');
+  process.exit(1);
+} else if (!fs.existsSync(moneybirdTokenFile)) {
+  logger.error('config/moneybird-token.json not found');
+  logger.error('  Run: npm run mb-initial-token and follow the steps');
+  process.exit(1);
+}
+
+const mbcfg = require('../config/moneybird.json') as MoneybirdConfig;
+const mb = require('./api/moneybird')(mbcfg);
+const configTyped = config as unknown as AppConfig;
 
 // Enable debug logging if --debug flag is set
 if (args.debug) {
@@ -54,10 +64,10 @@ if (args.debug) {
   logger.debug('Debug logging enabled');
 }
 
-if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args['dl-pdf'] && !args['status'])) {
+if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args['dl-pdf'] && !args['register-payment'] && !args['status'])) {
   logger.info(cusage([
     {
-      content: `Usage: gs2mb --create-invoice|--dl-pdf|--status [--clients ...] [--month YYYY-MM]`
+      content: `Usage: gs2mb --create-invoice|--dl-pdf|--register-payment|--status [options]`
     },
     {
       header: 'Options',
@@ -83,14 +93,39 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
           description: 'Download unpaid invoice PDFs'
         },
         {
+          name: 'financial-account-id',
+          type: String,
+          description: 'Moneybird financial account ID for --register-payment. Overrides config default; otherwise auto-picks when only one account exists.'
+        },
+        {
           name: 'help',
           type: Boolean,
           description: 'Print this usage guide.'
         },
         {
+          name: 'invoice',
+          type: String,
+          description: 'Invoice number for --register-payment, e.g. 2026-0034'
+        },
+        {
+          name: 'manual-payment-action',
+          type: String,
+          description: 'Payment action for --register-payment. Defaults to private_payment.'
+        },
+        {
           name: 'month',
           type: String,
           description: 'Year and month to calculate revenue for. Will INCLUDE hours which are already invoiced.'
+        },
+        {
+          name: 'payment-date',
+          type: String,
+          description: 'Payment date for --register-payment, YYYY-MM-DD'
+        },
+        {
+          name: 'register-payment',
+          type: Boolean,
+          description: 'Register a payment for an invoice in Moneybird'
         },
         {
           name: 'status',
@@ -112,7 +147,29 @@ if (args.help || !Object.keys(args).length || (!args['create-invoice'] && !args[
   process.exit(0);
 }
 
-if (args['dl-pdf']) {
+if (args['register-payment']) {
+  (async () => {
+    if (!args.invoice) {
+      throw new Error('Missing --invoice, e.g. --invoice 2026-0034');
+    }
+    if (!args['payment-date']) {
+      throw new Error('Missing --payment-date, expected YYYY-MM-DD');
+    }
+
+    await mb.init();
+    const payment = await registerInvoicePayment(mb, {
+      invoice: args.invoice,
+      paymentDate: args['payment-date'],
+      manualPaymentAction: args['manual-payment-action'],
+      financialAccountId: args['financial-account-id'] || configTyped.defaultFinancialAccountId || mbcfg.default_financial_account_id
+    });
+    logger.info(`Registered payment ${payment.id} for invoice ${args.invoice}: ${payment.price} on ${payment.payment_date}`);
+    process.exit(0);
+  })().catch((e: Error) => {
+    logger.error(e.message);
+    process.exit(1);
+  });
+} else if (args['dl-pdf']) {
   if (Object.keys(args).length > 1) {
     logger.warn('--dl-pdf found, ignoring other arguments');
   }
@@ -147,9 +204,10 @@ if (args['dl-pdf']) {
     }
     process.exit(0);
   })();
-}
+} else {
 
-const configTyped = config as unknown as AppConfig;
+const token = require('../config/gsheets-token.json');
+const gsheets = require('./api/gsheets')(token);
 
 let clients: Record<string, ClientConfig> = {};
 if (args.clients) {
@@ -266,3 +324,5 @@ if (args.month) {
   }).format(totalMultiInvoiceFee).replace('€', ' ').padStart(11);
   logger.info(`${''.padEnd(clidPad, '#')}######### €${totalMultiInvoiceFeeFmt}`);
 })();
+
+}

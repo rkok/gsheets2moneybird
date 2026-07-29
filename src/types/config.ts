@@ -22,5 +22,6 @@ export interface AppConfig {
   clients: Record<string, ClientConfig>;
   columnNames: ColumnNames;
   defaultFee?: number;
+  defaultFinancialAccountId?: string;
   includeVat?: boolean;
 }

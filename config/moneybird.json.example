@@ -1,5 +1,6 @@
 {
   "client_id": "...",
   "client_secret": "...",
-  "administration_id": "..."
+  "administration_id": "...",
+  "default_financial_account_id": "..."
 }
